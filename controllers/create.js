@@ -5,6 +5,6 @@ module.exports = {
      * @param {ServerResponse} res 
      */
     create(req, res){
-        res.render('create');
+        res.render('create', {as, title: 'Create'});
     }
 }

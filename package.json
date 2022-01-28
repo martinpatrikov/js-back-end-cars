@@ -1,0 +1,24 @@
+{
+  "name": "autobg-part-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martinpatrikov/js-back-end-cars.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/martinpatrikov/js-back-end-cars/issues"
+  },
+  "homepage": "https://github.com/martinpatrikov/js-back-end-cars#readme",
+  "dependencies": {
+    "express": "^4.17.2",
+    "express-handlebars": "^6.0.2"
+  }
+}

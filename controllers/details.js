@@ -4,7 +4,12 @@ module.exports = {
      * @param {IncomingMessage} req 
      * @param {ServerResponse} res 
      */
-     details(req, res){
-        res.render('details');
+    async details(req, res){
+        const car = await req.storage.getById(req.params.id);
+        if(car){
+            res.render('details', {car, title: `Details - ${car.name}`});
+        }else{
+            res.redirect('/not-found');
+        }
     }
 }

@@ -1,10 +1,8 @@
+const { getAll } = require("../services/cars");
+
 module.exports = {
-    /**
-     * 
-     * @param {IncomingMessage} req 
-     * @param {ServerResponse} res 
-     */
-    home(req, res){
-        res.render('index');
+    async home(req, res){
+        const cars = await req.storage.getAll();
+        res.render('index', { cars, title: 'Carbicle'});
     }
 }
