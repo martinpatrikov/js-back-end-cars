@@ -52,6 +52,28 @@ async function getById(id){
     }
 }
 
+async function deleteById(id){
+    const cars = await read();
+
+    if(cars.hasOwnProperty(id)){
+        delete cars[id];
+        await write(cars);
+    }else{
+        throw new ReferenceError('No such ID in database.');
+    }
+}
+
+async function editById(id, body){
+    const cars = await read();
+
+    if(cars.hasOwnProperty(id)){
+        cars[id] = body;
+        await write(cars);
+    }else{
+        throw new ReferenceError('No such ID in database.');
+    }
+}
+
 async function createCar(car){
     const cars = await read();
     
@@ -69,7 +91,9 @@ module.exports = () => (req, res, next) => {
     req.storage = {
         getAll,
         getById,
-        createCar
+        createCar,
+        deleteById,
+        editById
     };
     next();
 }
