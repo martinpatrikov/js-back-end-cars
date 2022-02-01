@@ -1,90 +1,64 @@
-const fs = require('fs/promises');
+const Car = require('../models/Car');
 
 const filePath = './services/data.json';
 
-async function read(){
-    try{
-        const file = await fs.readFile(filePath);
-        return JSON.parse(file);
-    }catch(err){
-        console.error('Database read error!');
-        console.error(err);
-        process.exit(1);
-    }
-    
-}
-
-async function write(data){
-    try{
-        await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    }catch(err){
-        console.error('Database read error!');
-        console.error(err);
-        process.exit(1);
-    }
-}
 
 async function getAll(query){
-    const data = await read();
-    let cars = Object
-        .entries(data)
-        .map(([id, v]) => Object.assign({},{id},v));
+    const options = {};
 
     if(query.search){
-        cars = cars.filter(c => c.name.toLocaleLowerCase().includes(query.search.toLocaleLowerCase()));
+        options.name = new RegExp(query.search, 'i');
     }
     if(query.from){
-        cars = cars.filter(c => c.price >= Number(query.from));
+        options.price = { $gte: Number(query.from)};
     }
     if(query.to){
-        cars = cars.filter(c => c.price <= Number(query.to));
+        if(!options.price){
+            options.price = {};
+        }
+        options.price.$lte = Number(query.to);
     }
 
+    const cars = await Car.find(options).lean();
     return cars;
 }
 
 async function getById(id){
-    const cars = await read();
-    if(cars[id]){
-        return Object.assign({},{id},cars[id]);
+    const car = await Car.findById(id).populate('accessories').lean();
+
+    if(car){
+        return car;
     }else{
         return undefined;
     }
 }
 
 async function deleteById(id){
-    const cars = await read();
-
-    if(cars.hasOwnProperty(id)){
-        delete cars[id];
-        await write(cars);
-    }else{
-        throw new ReferenceError('No such ID in database.');
-    }
+    await Car.findByIdAndDelete(id);
 }
 
-async function editById(id, body){
-    const cars = await read();
+async function editById(id, car){
+    const existing = await Car.findById(id);
+    
+    existing.name = car.name;
+    existing.description = car.description;
+    existing.imageUrl = car.imageUrl || undefined;
+    existing.price = car.price;
+    existing.accessories = car.accessories;
 
-    if(cars.hasOwnProperty(id)){
-        cars[id] = body;
-        await write(cars);
-    }else{
-        throw new ReferenceError('No such ID in database.');
-    }
+    await existing.save();
+}
+
+async function attachAccessory(carId, accessoryId){
+    const existing = await Car.findById(carId);
+
+    existing.accessories.push(accessoryId);
+    await existing.save();
 }
 
 async function createCar(car){
-    const cars = await read();
-    
-    const id = createId();
-    cars[id] = car;
-
-    await write(cars);
-}
-
-function createId(){
-    return 'xxxxxxxx-xxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16));
+    const result = new Car(car);
+    await result.save();
 }
 
 module.exports = () => (req, res, next) => {
@@ -93,7 +67,8 @@ module.exports = () => (req, res, next) => {
         getById,
         createCar,
         deleteById,
-        editById
+        editById,
+        attachAccessory
     };
     next();
 }
