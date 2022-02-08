@@ -6,6 +6,11 @@ module.exports = {
             req.accessory.getAll()
         ]);
 
+        if(car.owner != req.session.user.id){
+            console.log('User is not owner');
+            return res.redirect('/login');
+        }
+
         const existingIds = car.accessories.map(a => a._id.toString());
         const availableAccessories = accessories.filter(a => existingIds.includes(a._id.toString()) == false);
 
@@ -18,9 +23,15 @@ module.exports = {
     async post(req, res){
         const carId = req.params.id;
         const accessoryId = req.body.accessory;
+        const car = await req.storage.getById(carId);
+
+        if(car.owner != req.session.user.id){
+            console.log('User is not owner');
+            return res.redirect('/login');
+        }
 
         try{
-            await req.storage.attachAccessory(carId, accessoryId);
+            await req.storage.attachAccessory(carId, accessoryId, req.session.user.id);
 
             res.redirect('/');
         }catch(err){

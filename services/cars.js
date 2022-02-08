@@ -36,8 +36,8 @@ async function getById(id) {
 }
 
 async function deleteById(id) {
-    // await Car.findByIdAndDelete(id);
-    await Car.findByIdAndUpdate(id, { isDeleted: true });
+    await Car.findByIdAndDelete(id);
+    // await Car.findByIdAndUpdate(id, { isDeleted: true });
 }
 
 async function editById(id, car) {
@@ -52,7 +52,7 @@ async function editById(id, car) {
     await existing.save();
 }
 
-async function attachAccessory(carId, accessoryId) {
+async function attachAccessory(carId, accessoryId, ownerId) {
     const existing = await Car.findById(carId);
 
     existing.accessories.push(accessoryId);
