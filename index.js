@@ -1,10 +1,12 @@
 const express = require('express');
 const hbs = require('express-handlebars');
+const session = require('express-session');
 
 const initDb = require('./models');
 
 const carsService = require('./services/cars');
 const accessoryService = require('./services/accessory');
+const authService = require('./services/auth');
 
 const { about } = require('./controllers/about');
 
@@ -19,6 +21,9 @@ const { home } = require('./controllers/home');
 const { notFound } = require('./controllers/notFound');
 const attach = require('./controllers/attach');
 
+const auth = require('./controllers/auth');
+const { isLoggedIn } = require('./services/util');
+
 
 start();
 
@@ -32,16 +37,24 @@ async function start() {
 	}).engine);
 	app.set('view engine', 'hbs');
 
+	app.use(session({
+		secret: 'this is very secret',
+		resave: false, 
+		saveUninitialized: true,
+		cookie: { secret: 'auto' }
+	}))
 	app.use(express.urlencoded({ extended: true }));
 	app.use('/static', express.static('static'));
+	
 	app.use(carsService());
 	app.use(accessoryService());
+	app.use(authService());
 
 	app.get('/', home);
 	app.get('/about', about);
 
-	app.get('/create', create.get);
-	app.post('/create', create.post);
+	app.get('/create', isLoggedIn(), create.get);
+	app.post('/create', isLoggedIn(), create.post);
 
 	app.get('/details/:id', details);
 	app.route('/delete/:id')
@@ -49,16 +62,26 @@ async function start() {
 		.post(del.post);
 
 	app.route('/edit/:id')
-		.get(edit.get)
-		.post(edit.post);
+		.get(isLoggedIn(), edit.get)
+		.post(isLoggedIn(), edit.post);
 
 	app.route('/accessory')
-		.get(accessory.get)
-		.post(accessory.post);
+		.get(isLoggedIn(), accessory.get)
+		.post(isLoggedIn(), accessory.post);
 
 	app.route('/attach/:id')
-		.get(attach.get)
-		.post(attach.post);
+		.get(isLoggedIn(), attach.get)
+		.post(isLoggedIn(), attach.post);
+
+	app.route('/login')
+		.get(auth.loginGet)
+		.post(auth.loginPost);
+		
+	app.route('/register')
+		.get(auth.registerGet)
+		.post(auth.registerPost);
+
+	app.get('/logout', auth.logoutGet);
 
 	app.all('*', notFound);
 

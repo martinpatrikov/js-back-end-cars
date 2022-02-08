@@ -3,17 +3,19 @@ const Car = require('../models/Car');
 const filePath = './services/data.json';
 
 
-async function getAll(query){
-    const options = {};
+async function getAll(query) {
+    const options = {
+        isDeleted: false
+    };
 
-    if(query.search){
+    if (query.search) {
         options.name = new RegExp(query.search, 'i');
     }
-    if(query.from){
-        options.price = { $gte: Number(query.from)};
+    if (query.from) {
+        options.price = { $gte: Number(query.from) };
     }
-    if(query.to){
-        if(!options.price){
+    if (query.to) {
+        if (!options.price) {
             options.price = {};
         }
         options.price.$lte = Number(query.to);
@@ -23,23 +25,24 @@ async function getAll(query){
     return cars;
 }
 
-async function getById(id){
-    const car = await Car.findById(id).populate('accessories').lean();
+async function getById(id) {
+    const car = await Car.findById(id).where({ isDeleted: false }).populate('accessories').lean();
 
-    if(car){
+    if (car) {
         return car;
-    }else{
+    } else {
         return undefined;
     }
 }
 
-async function deleteById(id){
-    await Car.findByIdAndDelete(id);
+async function deleteById(id) {
+    // await Car.findByIdAndDelete(id);
+    await Car.findByIdAndUpdate(id, { isDeleted: true });
 }
 
-async function editById(id, car){
-    const existing = await Car.findById(id);
-    
+async function editById(id, car) {
+    const existing = await Car.findById(id).where({ isDeleted: false });
+
     existing.name = car.name;
     existing.description = car.description;
     existing.imageUrl = car.imageUrl || undefined;
@@ -49,14 +52,14 @@ async function editById(id, car){
     await existing.save();
 }
 
-async function attachAccessory(carId, accessoryId){
+async function attachAccessory(carId, accessoryId) {
     const existing = await Car.findById(carId);
 
     existing.accessories.push(accessoryId);
     await existing.save();
 }
 
-async function createCar(car){
+async function createCar(car) {
     const result = new Car(car);
     await result.save();
 }
