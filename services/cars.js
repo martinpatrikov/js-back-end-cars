@@ -40,17 +40,25 @@ async function deleteById(id) {
     // await Car.findByIdAndUpdate(id, { isDeleted: true });
 }
 
-async function editById(id, car) {
-    const existing = await Car.findById(id).where({ isDeleted: false });
+async function editById(id, car, ownerId) {
+    const existing = await Car.findById(id);
+
+    if (existing.owner != ownerId) {
+        return false;
+    }
 
     existing.name = car.name;
     existing.description = car.description;
     existing.imageUrl = car.imageUrl || undefined;
     existing.price = car.price;
     existing.accessories = car.accessories;
+    console.log("car", car.accessories)
 
     await existing.save();
+
+    return true;
 }
+
 
 async function attachAccessory(carId, accessoryId, ownerId) {
     const existing = await Car.findById(carId);

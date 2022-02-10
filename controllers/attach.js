@@ -11,6 +11,7 @@ module.exports = {
             return res.redirect('/login');
         }
 
+        console.log(car)
         const existingIds = car.accessories.map(a => a._id.toString());
         const availableAccessories = accessories.filter(a => existingIds.includes(a._id.toString()) == false);
 
