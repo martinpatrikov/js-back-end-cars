@@ -7,6 +7,7 @@ const initDb = require('./models');
 const carsService = require('./services/cars');
 const accessoryService = require('./services/accessory');
 const authService = require('./services/auth');
+const { isLoggedIn } = require('./services/util');
 
 const { about } = require('./controllers/about');
 
@@ -20,9 +21,8 @@ const { details } = require('./controllers/details');
 const { home } = require('./controllers/home');
 const { notFound } = require('./controllers/notFound');
 const attach = require('./controllers/attach');
+const authController = require('./controllers/auth');
 
-const auth = require('./controllers/auth');
-const { isLoggedIn } = require('./services/util');
 
 
 start();
@@ -73,15 +73,7 @@ async function start() {
 		.get(isLoggedIn(), attach.get)
 		.post(isLoggedIn(), attach.post);
 
-	app.route('/login')
-		.get(auth.loginGet)
-		.post(auth.loginPost);
-		
-	app.route('/register')
-		.get(auth.registerGet)
-		.post(auth.registerPost);
-
-	app.get('/logout', auth.logoutGet);
+	app.use(authController);
 
 	app.all('*', notFound);
 

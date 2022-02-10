@@ -1,8 +1,10 @@
+const { mapError } = require("../services/util");
+
 module.exports = {
-    get(req, res){
-        res.render('create', { title: 'Create'});
+    get(req, res) {
+        res.render('create', { title: 'Create' });
     },
-    async post(req, res){
+    async post(req, res) {
         const car = {
             name: req.body.name,
             imageUrl: req.body.imageUrl || undefined,
@@ -10,14 +12,13 @@ module.exports = {
             price: Number(req.body.price),
             owner: req.session.user.id
         };
-        try{
+        try {
             await req.storage.createCar(car);
 
             res.redirect('/');
-        }catch(err){
-            console.log('Error creating');
-
-            res.redirect('/create');
-        }        
+        } catch (err) {
+            res.locals.errors = mapError(err);
+            res.render('create', { title: 'Create', car});
+        }
     }
 }
